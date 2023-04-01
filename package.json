@@ -1,0 +1,47 @@
+{
+  "name": "NodeJS-Terminal-Template",
+  "description": "A Template for Nodejs Terminal Application using TypeScript",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "./build/index.js",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "exports": "./build/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mugambi-Ian/NodeJS-Terminal-Template---TypeScript"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "scripts": {
+    "start": "node build/index.js",
+    "export": "npx tsc --build tsconfig.json",
+    "fix": "gts fix",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "dev": "run-s preexport watch",
+    "preexport": "npx rimraf build",
+    "prepare": "husky install",
+    "check-types": "tsc --noEmit",
+    "watch": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./build/index.js\""
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "puppeteer": "^19.8.2"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "@types/express": "^4.17.17",
+    "@types/node": "^14.11.2",
+    "eslint": "^8.21.0",
+    "gts": "^4.0.0",
+    "husky": "^8.0.1",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "tsc-watch": "^5.0.3",
+    "typescript": "^4.7.4"
+  }
+}
