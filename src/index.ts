@@ -37,6 +37,7 @@ app.get('/downloadResume', async (req: Request, res: Response) => {
       .pdf({
         scale: 0.75,
         width: '803px',
+        printBackground: true,
         height: `${main!.height * 0.68}px`,
       })
       .catch(err);
