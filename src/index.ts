@@ -38,6 +38,7 @@ app.get('/downloadResume', async (req: Request, res: Response) => {
         scale: 0.75,
         width: '803px',
         printBackground: true,
+        preferCSSPageSize: true,
         height: `${main!.height * 0.68}px`,
       })
       .catch(err);
