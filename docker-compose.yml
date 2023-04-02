@@ -12,7 +12,7 @@ services:
     volumes:
       - ./:/app/:delegated
     ports:
-      - '443:443'
+      - '5555:5555'
     networks:
       - portfolio-cms
   

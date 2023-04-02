@@ -1,3 +1,4 @@
+import {log} from 'console';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import express, {Request, Response} from 'express';
@@ -6,33 +7,41 @@ import puppeteer from 'puppeteer';
 const app = express();
 const {APP_PORT} = process.env;
 
+function err(err: Error) {
+  throw err;
+}
+
 app.get('/downloadResume', async (req: Request, res: Response) => {
   try {
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--disable-gpu',
-        '--disable-dev-shm-usage',
-        '--disable-setuid-sandbox',
-        '--no-sandbox',
-      ],
-    });
-    const page = await browser.newPage();
+    const browser = await puppeteer
+      .launch({
+        headless: true,
+        args: [
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-setuid-sandbox',
+          '--no-sandbox',
+        ],
+      })
+      .catch(err);
+    const page = await browser!.newPage();
     const url = req.query['url'] as string;
     await page.setExtraHTTPHeaders({
       'hide-header': 'true',
       'dark-mode': 'false',
     });
-    await page.goto(url);
+    await page.goto(url).catch(err);
     const elem = await page.$('main');
     const main = await elem?.boundingBox();
-    const pdf = await page.pdf({
-      scale: 0.75,
-      width: '803px',
-      height: `${main!.height * 0.68}px`,
-    });
+    const pdf = await page
+      .pdf({
+        scale: 0.75,
+        width: '803px',
+        height: `${main!.height * 0.68}px`,
+      })
+      .catch(err);
 
-    await browser.close();
+    await browser!.close().catch(err);
 
     res.set({
       'Content-Type': 'application/pdf',
@@ -42,6 +51,7 @@ app.get('/downloadResume', async (req: Request, res: Response) => {
 
     res.send(pdf);
   } catch (error) {
+    log(error);
     res.status(500).send({error});
   }
 });
