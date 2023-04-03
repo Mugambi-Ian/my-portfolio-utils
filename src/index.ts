@@ -1,8 +1,9 @@
+/* eslint-disable no-process-exit */
 import {log} from 'console';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import express, {Request, Response} from 'express';
-import puppeteer from 'puppeteer';
+import puppeteer, {Browser} from 'puppeteer';
 
 const app = express();
 const {APP_PORT} = process.env;
@@ -10,20 +11,9 @@ const {APP_PORT} = process.env;
 function err(err: Error) {
   throw err;
 }
-
+let browser: Browser | void = undefined;
 app.get('/downloadResume', async (req: Request, res: Response) => {
   try {
-    const browser = await puppeteer
-      .launch({
-        headless: true,
-        args: [
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-setuid-sandbox',
-          '--no-sandbox',
-        ],
-      })
-      .catch(err);
     const page = await browser!.newPage();
     const url = req.query['url'] as string;
     await page.setExtraHTTPHeaders({
@@ -42,9 +32,7 @@ app.get('/downloadResume', async (req: Request, res: Response) => {
         height: `${main!.height * 0.68}px`,
       })
       .catch(err);
-
-    await browser!.close().catch(err);
-
+    await page.close();
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename="page.pdf"',
@@ -58,6 +46,22 @@ app.get('/downloadResume', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(APP_PORT, () => {
+app.listen(APP_PORT, async () => {
+  browser = await puppeteer
+    .launch({
+      headless: true,
+      args: [
+        '--disable-gpu',
+        '--disable-dev-shm-usage',
+        '--disable-setuid-sandbox',
+        '--no-sandbox',
+      ],
+    })
+    .catch(err);
   console.log('App listening on port ' + APP_PORT);
+});
+
+process.on('exit', async () => {
+  if (browser) await browser.close().catch(err);
+  console.log('server closed');
 });
