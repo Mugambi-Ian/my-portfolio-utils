@@ -1,25 +1,12 @@
-
 version: '3'
 services:
   strapi:
-    container_name: portfolio-utils
+    container_name: portfolio.online
     build: .
-    image: portfolio-utils:latest
-    restart: unless-stopped
+    image: portfolio.online:latest
+    restart: always
     env_file: .env
-    environment:
-      APP_PORT: ${APP_PORT}
     volumes:
-      - ./:/app/:delegated
+      - ./:/opt/app
     ports:
       - '5555:5555'
-    networks:
-      - portfolio-cms
-  
-volumes:
-  strapi-data:
-
-networks:
-  strapi:
-    name: Strapi
-    driver: bridge

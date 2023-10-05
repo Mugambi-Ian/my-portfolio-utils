@@ -1,14 +1,31 @@
-FROM node:latest
-RUN apt-get update
-RUN apt-get install -y build-essential gcc autoconf automake zlib1g-dev libpng-dev nasm bash libvips-dev yarn fonts-liberation gconf-service libappindicator1 libasound2 libatk1.0-0 libcairo2 libcups2 libfontconfig1 libgbm-dev libgdk-pixbuf2.0-0 libgtk-3-0 libicu-dev libjpeg-dev libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libpng-dev libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 xdg-utils
-ARG APP_PORT=5555
-ENV APP_PORT=${APP_PORT}
-WORKDIR /app
-COPY package.json ./
-COPY tsconfig.json ./
-COPY src ./src
-RUN ls -a
-RUN yarn install --frozen-lockfile
+# Install dependencies only when needed
+FROM --platform=linux/amd64 node:18  AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#node20 to understand why libc6-compat might be needed.
+
+WORKDIR /opt/app
+COPY package.json yarn.lock ./
+RUN yarn
+
+FROM --platform=linux/amd64 node:18 AS runner
+
+WORKDIR /opt/app
+
+RUN apt-get update \
+    && apt-get install -y wget gnupg \
+    && apt-get update \
+    && apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev chromium fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf libxss1 \
+      --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
+
+COPY . .
+COPY --from=deps /opt/app/node_modules ./node_modules
+RUN yarn postinstall
+
+
 RUN yarn export
-EXPOSE 5555
-CMD ["npm", "run", "start"]
+
+ENV PORT=4000
+EXPOSE 4000
+
+CMD ["yarn", "start"]
