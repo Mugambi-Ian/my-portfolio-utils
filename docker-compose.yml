@@ -9,4 +9,4 @@ services:
     volumes:
       - ./:/opt/app
     ports:
-      - '5555:5555'
+      - '4000:400'
