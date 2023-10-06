@@ -25,7 +25,7 @@ RUN yarn postinstall
 
 RUN yarn export
 
-ENV PORT=4000
-EXPOSE 4000
+ENV PORT=1338
+EXPOSE 1338
 
 CMD ["yarn", "start"]
