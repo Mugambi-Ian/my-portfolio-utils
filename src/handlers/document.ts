@@ -8,13 +8,7 @@ export class DocumentHandler {
 
     await page.setExtraHTTPHeaders({
       'hide-header': 'true',
-    });
-    await page.setCookie({
-      secure: true,
-      name: 'theme',
-      value: 'light',
-      sameSite: 'Strict',
-      domain: process.env['APP_URL'],
+      theme: 'light',
     });
 
     await page.goto(process.env['APP_URL'] + '/resume/?lang=' + params.lang);
