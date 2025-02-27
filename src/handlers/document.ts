@@ -20,7 +20,7 @@ export class DocumentHandler {
       width: '803px',
       printBackground: true,
       preferCSSPageSize: true,
-      height: `${main!.height * 0.9}px`,
+      height: `${main!.height * 0.75}px`,
     });
     await page.close();
     res.set({
