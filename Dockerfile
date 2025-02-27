@@ -1,31 +1,38 @@
-# Install dependencies only when needed
-FROM --platform=linux/amd64 node:18  AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#node20 to understand why libc6-compat might be needed.
+# Stage 1: Install dependencies only when needed
+FROM node:20 AS deps
+# Check https://github.com/nodejs/docker-node/tree/main for latest details
 
 WORKDIR /opt/app
 COPY package.json yarn.lock ./
-RUN yarn
 
-FROM --platform=linux/amd64 node:18 AS runner
+# Stage 2: Prepare runtime environment
+FROM  node:20 AS runner
 
 WORKDIR /opt/app
 
+# Install system dependencies for Chromium & other libraries
 RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && apt-get update \
-    && apt-get install -y libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3-dev libxss-dev chromium fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf libxss1 \
-      --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
+    && apt-get install -y --no-install-recommends \
+      libasound2 wget gnupg libgconf-2-4 libatk1.0-0 libatk-bridge2.0-0 \
+       libgdk-pixbuf2.0-0 libgtk-3-0 libgbm-dev libnss3 libxss1 \
+       fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-khmeros fonts-kacst fonts-freefont-ttf \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Ensure non-root user for better security (e.g., Puppeteer compatibility)
+RUN groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
 
 COPY . .
-COPY --from=deps /opt/app/node_modules ./node_modules
-RUN yarn postinstall
 
+# Ensure compatibility with monorepos / workspaces
+RUN yarn workspaces focus --all || yarn install
 
+# Build & Export
 RUN yarn export
 
+# Set environment variables
 ENV PORT=1338
 EXPOSE 1338
 
+# Start the application
 CMD ["yarn", "start"]
